@@ -2,9 +2,6 @@ import pandas as pd
 from columns import relevant_columns
 import math
 
-players = ["Rockatanskye", "blooort", "YoLookItsOprah", "NottheCaveman", "gingerflipz", "JackoaTrades01"]
-
-
 def is_speed_flip(data):
     # Extract data
     player_name = data['PlayerName']
@@ -124,9 +121,12 @@ df = pd.read_parquet(file_path)
 
 pd.set_option('display.max_columns', None)
 
+players = df['PlayerName'].unique().tolist()
+player = players[0]
 
 #To find when speed flips occur pass in the dataframe and the playername to find when they do speed flips in Seconds Remaining
-print(speed_flip_times(df, players[0]))
+print(f"Player: {player}")
+print(speed_flip_times(df, player))
 
 
 
