@@ -21,11 +21,11 @@ def is_speed_flip(data):
     car_speed = data['CarSpeed']
 
     # Thresholds and ranges
-    SPEED_THRESHOLD = 40.0                      # Speed above 40 units per second
-    HEIGHT_THRESHOLD = 30.0                     # Minimum height indicating a jump
+    SPEED_THRESHOLD = 50.0                      # Speed above 40 units per second
+    HEIGHT_THRESHOLD = 50.0                     # Minimum height indicating a jump
     VERTICAL_VELOCITY_THRESHOLD = 180.0         # Slightly increased vertical velocity threshold
     ANGULAR_VELOCITY_LIMIT = 2000.0             # Reduced limit for angular velocity
-    FLEXIBLE_ANGLE_RANGE = 120.0                # Tightened range for roll/pitch angles (120 to 180 degrees)
+    FLEXIBLE_ANGLE_RANGE = 120.0               # Tightened range for roll/pitch angles (120 to 180 degrees)
 
     # Map boundary limits
     MAP_X_LIMIT = 4000.0                        # Approximate X map boundary
@@ -122,11 +122,12 @@ df = pd.read_parquet(file_path)
 pd.set_option('display.max_columns', None)
 
 players = df['PlayerName'].unique().tolist()
-player = players[0]
+player = players[2]
 
 #To find when speed flips occur pass in the dataframe and the playername to find when they do speed flips in Seconds Remaining
 print(f"Player: {player}")
 print(speed_flip_times(df, player))
+print(len(speed_flip_times(df, player)))
 
 
 
