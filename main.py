@@ -4,7 +4,6 @@ import math
 
 def is_speed_flip(data):
     # Extract data
-    player_name = data['PlayerName']
     car_position_x = data['CarPositionX']
     car_position_y = data['CarPositionY']
     car_position_z = data['CarPositionZ']
@@ -21,34 +20,39 @@ def is_speed_flip(data):
     car_speed = data['CarSpeed']
 
     # Thresholds and ranges
-    SPEED_THRESHOLD = 50.0                      # Speed above 40 units per second
-    HEIGHT_THRESHOLD = 50.0                     # Minimum height indicating a jump
-    VERTICAL_VELOCITY_THRESHOLD = 180.0         # Slightly increased vertical velocity threshold
-    ANGULAR_VELOCITY_LIMIT = 2000.0             # Reduced limit for angular velocity
-    FLEXIBLE_ANGLE_RANGE = 120.0               # Tightened range for roll/pitch angles (120 to 180 degrees)
-
-    # Map boundary limits
-    MAP_X_LIMIT = 4000.0                        # Approximate X map boundary
-    MAP_Y_LIMIT = 5000.0                        # Approximate Y map boundary
-    EDGE_MARGIN = 200.0                         # Margin for proximity to edges
+    SPEED_THRESHOLD = 120                      # Minimum speed for a speed flip
+    MIN_HEIGHT_THRESHOLD = 50.0                 # Minimum height for the flip
+    MAX_HEIGHT_THRESHOLD = 150
+    VERTICAL_VELOCITY_THRESHOLD = 180.0        # Minimum vertical velocity for the flip
+    ANGULAR_VELOCITY_LIMIT = 2000.0            # Angular velocity limit for rotations
+    FLEXIBLE_ANGLE_RANGE = 120.0               # Range for roll/pitch angles
+    DIAGONAL_TRAJECTORY_ANGLE_RANGE = (60, 90)  # Angle range for diagonal flips
+    MAP_X_LIMIT = 4000.0                       # X boundary of the map
+    MAP_Y_LIMIT = 5000.0                       # Y boundary of the map
+    EDGE_MARGIN = 200.0                        # Margin near the edges of the map
 
     # Convert quaternion to roll (rotation around X-axis) and pitch (rotation around Y-axis)
     roll = math.atan2(2 * (car_rotation_w * car_rotation_x + car_rotation_y * car_rotation_z),
                       1 - 2 * (car_rotation_x**2 + car_rotation_y**2)) * (180 / math.pi)
-
     pitch = math.asin(2 * (car_rotation_w * car_rotation_y - car_rotation_z * car_rotation_x)) * (180 / math.pi)
 
-    # Check if the car is close to upside down or tilted diagonally
-    is_close_to_upside_down = (
-        abs(roll) >= FLEXIBLE_ANGLE_RANGE or
-        abs(pitch) >= FLEXIBLE_ANGLE_RANGE
+    # Determine if the car is tilted diagonally
+    trajectory_angle = math.degrees(math.atan2(abs(car_linear_velocity_y), abs(car_linear_velocity_x)))
+    is_diagonal_trajectory = (
+        DIAGONAL_TRAJECTORY_ANGLE_RANGE[0] <= trajectory_angle <= DIAGONAL_TRAJECTORY_ANGLE_RANGE[1]
+    )
+
+    # Ensure the car is tilted diagonally and not fully upright or inverted
+    is_tilted_diagonally = (
+        FLEXIBLE_ANGLE_RANGE - 30.0 <= abs(roll) <= FLEXIBLE_ANGLE_RANGE + 30.0 or
+        FLEXIBLE_ANGLE_RANGE - 30.0 <= abs(pitch) <= FLEXIBLE_ANGLE_RANGE + 30.0
     )
 
     # Speed condition
     is_speed_high = car_speed > SPEED_THRESHOLD
 
     # Height condition
-    is_height_increasing = car_position_z > HEIGHT_THRESHOLD
+    is_height_increasing = car_position_z > MIN_HEIGHT_THRESHOLD and car_position_z < MAX_HEIGHT_THRESHOLD
 
     # Vertical velocity condition
     is_vertical_velocity_high = car_linear_velocity_z > VERTICAL_VELOCITY_THRESHOLD
@@ -66,12 +70,13 @@ def is_speed_flip(data):
         abs(car_position_y) > MAP_Y_LIMIT - EDGE_MARGIN
     )
 
-    # Final decision: flexible conditions for speed flips
+    # Final decision: allow tilted diagonal trajectories but exclude complete front/back flips
     return (
         is_speed_high and
         is_height_increasing and
         is_vertical_velocity_high and
-        (is_angular_velocity_high or is_close_to_upside_down) and
+        (is_angular_velocity_high or is_tilted_diagonally) and
+        is_diagonal_trajectory and
         not is_near_edge
     )
     
@@ -92,6 +97,7 @@ def filter_data_for_player(df, playerName):
     df_filtered_postions = df_player_data.dropna(subset=['CarPositionX'])
     
     return df_filtered_postions
+
 
 def get_all_speed_flips(p_data):
     speed_flips = []
