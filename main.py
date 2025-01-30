@@ -128,7 +128,7 @@ df = pd.read_parquet(file_path)
 pd.set_option('display.max_columns', None)
 
 players = df['PlayerName'].unique().tolist()
-player = players[2]
+player = players[6]
 
 #To find when speed flips occur pass in the dataframe and the playername to find when they do speed flips in Seconds Remaining
 print(f"Player: {player}")
