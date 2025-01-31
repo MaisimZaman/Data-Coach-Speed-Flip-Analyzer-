@@ -1,15 +1,21 @@
 import pandas as pd
 from columns import relevant_columns
 import math
+import joblib
 
 
 
-
+rf_model = joblib.load("speed_flip_model.pkl")
 flip_df = pd.read_csv("Speedflip_excel.csv")
+
 
 speed_flip_timestamps = flip_df.loc[flip_df["Flip Type"] == "Speed Flip", "TimeStamp"].tolist()
 not_speed_flip_timestamps = flip_df.loc[flip_df["Flip Type"] != "Speed Flip", "TimeStamp"].tolist()
     
+print("Actual Speed Flip Timestamps:")
+print(speed_flip_timestamps)
+print(f"{len(speed_flip_timestamps)} total real speed flips")
+
 def timestamp_to_seconds(timestamp):
     """Converts a timestamp in MM:SS format to total seconds."""
     minutes, seconds = map(int, timestamp.split(":"))
@@ -18,10 +24,47 @@ def timestamp_to_seconds(timestamp):
 timestamps_sec = list(map(timestamp_to_seconds, speed_flip_timestamps))
 not_timestamps_sec = list(map(timestamp_to_seconds, not_speed_flip_timestamps))
 
-print(timestamps_sec)
-print(not_timestamps_sec)
-def is_speed_flip(data):
-    pass 
+
+
+def is_speed_flip(data, rf_model):
+    car_position_x = data['CarPositionX']
+    car_position_y = data['CarPositionY']
+    car_position_z = data['CarPositionZ']
+    car_rotation_x = data['CarRotationX']
+    car_rotation_y = data['CarRotationY']
+    car_rotation_z = data['CarRotationZ']
+    car_rotation_w = data['CarRotationW']
+    car_linear_velocity_x = data['CarLinearVelocityX']
+    car_linear_velocity_y = data['CarLinearVelocityY']
+    car_linear_velocity_z = data['CarLinearVelocityZ']
+    car_angular_velocity_x = data['CarAngularVelocityX']
+    car_angular_velocity_y = data['CarAngularVelocityY']
+    car_angular_velocity_z = data['CarAngularVelocityZ']
+    car_speed = data['CarSpeed']
+    
+    input_data = {
+    "CarPositionX": car_position_x,
+    "CarPositionY": car_position_y,
+    "CarPositionZ": car_position_z,
+    "CarRotationX": car_rotation_x,
+    "CarRotationY": car_rotation_y,
+    "CarRotationZ": car_rotation_z,
+    "CarRotationW": car_rotation_w,
+    "CarLinearVelocityX": car_linear_velocity_x,
+    "CarLinearVelocityY": car_linear_velocity_y,
+    "CarLinearVelocityZ": car_linear_velocity_z,
+    "CarAngularVelocityX": car_angular_velocity_x,
+    "CarAngularVelocityY": car_angular_velocity_y,
+    "CarAngularVelocityZ": car_angular_velocity_z,
+    "CarSpeed": car_speed
+    }
+    
+    input_df = pd.DataFrame([input_data])
+    prediction = rf_model.predict(input_df)
+    
+    if prediction[0] == 1:
+        return True
+    return False
 
 def build_training_dataframe(df, playerName, timestamps_sec):
     df_filtered = df[relevant_columns]
@@ -51,6 +94,14 @@ def convert_data_to_list(data):
         
     return cleaned_data_list
 
+def filter_data_for_player(df, playerName):
+    df_filtered = df[relevant_columns]
+    df_player_data = df_filtered[df_filtered['PlayerName'] == playerName]
+    filtered_seconds = df_player_data.drop_duplicates(subset='SecondsRemaining', keep='first')
+    df_filtered_postions = df_player_data.dropna(subset=['CarPositionX'])
+    
+    return df_filtered_postions
+
 def filter_data_for_speed_flip(df, playerName):
     df_filtered = df[relevant_columns]
     speed_flip_timestamps = df_filtered[df_filtered["SecondsRemaining"].isin(timestamps_sec)]
@@ -73,7 +124,7 @@ def filter_data_for_not_speed_flip(df, playerName):
 def get_all_speed_flips(p_data):
     speed_flips = []
     for data in convert_data_to_list(p_data):
-        if is_speed_flip(data):
+        if is_speed_flip(data, rf_model):
             if not any(d.get('SecondsRemaining') == data['SecondsRemaining'] for d in speed_flips):
                 speed_flips.append(data)
     
@@ -102,16 +153,20 @@ players = df['PlayerName'].unique().tolist()
 player = players[0]
 
 
-speed_flip_df = filter_data_for_speed_flip(df, player)
-not_speed_flip_df = filter_data_for_not_speed_flip(df, player)
+#speed_flip_df = filter_data_for_speed_flip(df, player)
+#not_speed_flip_df = filter_data_for_not_speed_flip(df, player)
+
 #speed_flip_df.to_csv("speed_flip_stats.csv", index=False) 
 #not_speed_flip_df.to_csv("not_speed_flip_stats.csv")
-build_training_dataframe(df, player, timestamps_sec)
 
 #To find when speed flips occur pass in the dataframe and the playername to find when they do speed flips in Seconds Remaining
-#print(f"Player: {player}")
-#print(speed_flip_times(df, player))
-#print(len(speed_flip_times(df, player)))
+print(" ")
+print(f"Speed Flip timestamps predicted by ML model:")
+print(speed_flip_times(df, player))
+speed_flip_count = len(speed_flip_times(df, player))
+print(f"{speed_flip_count} predicted speed flips")
+
+
 
 
 
