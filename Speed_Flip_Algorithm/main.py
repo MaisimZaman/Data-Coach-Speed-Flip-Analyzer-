@@ -2,27 +2,23 @@ import pandas as pd
 from columns import relevant_columns
 import math
 import joblib
+from build_dataframe import build_training_dataframe
 
 
 
-rf_model = joblib.load("speed_flip_model.pkl")
+rf_model = joblib.load("ML_Models/rf_speed_flip_model.pkl")
 flip_df = pd.read_csv("Speedflip_excel.csv")
 
 
 speed_flip_timestamps = flip_df.loc[flip_df["Flip Type"] == "Speed Flip", "TimeStamp"].tolist()
 not_speed_flip_timestamps = flip_df.loc[flip_df["Flip Type"] != "Speed Flip", "TimeStamp"].tolist()
+
+
     
 print("Actual Speed Flip Timestamps:")
 print(speed_flip_timestamps)
 print(f"{len(speed_flip_timestamps)} total real speed flips")
 
-def timestamp_to_seconds(timestamp):
-    """Converts a timestamp in MM:SS format to total seconds."""
-    minutes, seconds = map(int, timestamp.split(":"))
-    return minutes * 60 + seconds
-
-timestamps_sec = list(map(timestamp_to_seconds, speed_flip_timestamps))
-not_timestamps_sec = list(map(timestamp_to_seconds, not_speed_flip_timestamps))
 
 
 
@@ -66,25 +62,8 @@ def is_speed_flip(data, rf_model):
         return True
     return False
 
-def build_training_dataframe(df, playerName, timestamps_sec):
-    df_filtered = df[relevant_columns]
-    
-    df_player_data = df_filtered[df_filtered['PlayerName'] == playerName]
-    filtered_seconds = df_player_data.drop_duplicates(subset='SecondsRemaining', keep='first')
-    df_filtered_postions = df_player_data.dropna(subset=['CarPositionX'])
-    
-    df_filtered_postions["SpeedFlip"] = df_filtered_postions["SecondsRemaining"].apply(lambda x: 1 if x in timestamps_sec else 0)
-    
-    df_filtered_postions.to_csv("training_data.csv", index=False)
-    
-    
-    
-    
-    
 
-
-    
-    
+        
 
 def convert_data_to_list(data):
     cleaned_data_list = []
@@ -102,23 +81,7 @@ def filter_data_for_player(df, playerName):
     
     return df_filtered_postions
 
-def filter_data_for_speed_flip(df, playerName):
-    df_filtered = df[relevant_columns]
-    speed_flip_timestamps = df_filtered[df_filtered["SecondsRemaining"].isin(timestamps_sec)]
-    df_player_data = speed_flip_timestamps[speed_flip_timestamps['PlayerName'] == playerName]
-    filtered_seconds = df_player_data.drop_duplicates(subset='SecondsRemaining', keep='first')
-    df_filtered_postions = df_player_data.dropna(subset=['CarPositionX'])
-    
-    return df_filtered_postions
 
-def filter_data_for_not_speed_flip(df, playerName):
-    df_filtered = df[relevant_columns]
-    not_speed_flip_timestamps = df_filtered[df_filtered["SecondsRemaining"].isin(not_timestamps_sec)]
-    df_player_data = not_speed_flip_timestamps[not_speed_flip_timestamps['PlayerName'] == playerName]
-    filtered_seconds = df_player_data.drop_duplicates(subset='SecondsRemaining', keep='first')
-    df_filtered_postions = df_player_data.dropna(subset=['CarPositionX'])
-    
-    return df_filtered_postions
 
 
 def get_all_speed_flips(p_data):
@@ -133,7 +96,7 @@ def get_all_speed_flips(p_data):
 
 #returns list of formatted time for when all the speed_flips occur based on SecondsRemaining
 def speed_flip_times(df, playerName):
-    p_data = filter_data_for_speed_flip(df, playerName)
+    p_data = filter_data_for_player(df, playerName)
     speed_flips = get_all_speed_flips(p_data)
     
     formatted_speed_flip_times = map(lambda d: f"{int(divmod(d['SecondsRemaining'], 60)[0])}:{int(divmod(d['SecondsRemaining'], 60)[1]):02}" , speed_flips)
@@ -142,7 +105,7 @@ def speed_flip_times(df, playerName):
     
     
 
-file_path = "game_replay.parquet"
+file_path = "replay_parquets/game_replay.parquet"
 
 
 df = pd.read_parquet(file_path)
@@ -160,12 +123,15 @@ player = players[0]
 #not_speed_flip_df.to_csv("not_speed_flip_stats.csv")
 
 #To find when speed flips occur pass in the dataframe and the playername to find when they do speed flips in Seconds Remaining
+
+build_training_dataframe(df, player, flip_df)
+
 print(" ")
 print(f"Speed Flip timestamps predicted by ML model:")
-print(speed_flip_times(df, player))
-speed_flip_count = len(speed_flip_times(df, player))
-print(f"{speed_flip_count} predicted speed flips")
-
+#print(speed_flip_times(df, player))
+#speed_flip_count = len(speed_flip_times(df, player))
+#print(f"{speed_flip_count} predicted speed flips")
+print(player)
 
 
 

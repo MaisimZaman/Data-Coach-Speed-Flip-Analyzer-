@@ -1,5 +1,6 @@
 #ML Model using Random Forest Classifier
 from sklearn.ensemble import RandomForestClassifier
+import xgboost as xgb
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, classification_report
 import pandas as pd
@@ -25,16 +26,32 @@ y = training_df["SpeedFlip"]  # Target variable
 #training the model
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.4, random_state=42, stratify=y)
 
-rf_model = RandomForestClassifier(n_estimators=100, max_depth=10, random_state=42, class_weight="balanced")
-rf_model.fit(X_train, y_train)
+def build_random_forest_model(X_train, y_train):
+    rf_model = RandomForestClassifier(n_estimators=100, max_depth=10, random_state=42, class_weight="balanced")
+    rf_model.fit(X_train, y_train)
+    
+    return rf_model
+
+def build_xgb_model(X_train, y_train):
+    xgb_model = xgb.XGBClassifier(n_estimators=200, max_depth=6, learning_rate=0.1, random_state=42)
+
+    xgb_model.fit(X_train, y_train)
+    
+    return xgb_model
+
+rf_model = build_random_forest_model(X_train, y_train)
+
+xgb_model = build_xgb_model(X_train, y_train)
 
 
+joblib.dump(xgb_model, "ML_Models/xgb_speed_flip_model.pkl")
 
-joblib.dump(rf_model, "speed_flip_model.pkl")
+joblib.dump(rf_model, "ML_Models/rf_speed_flip_model.pkl")
 
-y_pred = rf_model.predict(X_test)
+y_pred = xgb_model.predict(X_test)
 
 rf_accuracy = accuracy_score(y_test, y_pred)
 rf_classification_report = classification_report(y_test, y_pred)
 
-print(rf_accuracy)
+xgb_accuracy = accuracy_score(y_test, y_pred)
+print(xgb_accuracy)
