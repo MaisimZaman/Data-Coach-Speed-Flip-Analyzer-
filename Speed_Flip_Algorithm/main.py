@@ -6,7 +6,7 @@ from build_dataframe import build_training_dataframe
 
 
 
-rf_model = joblib.load("ML_Models/rf_speed_flip_model.pkl")
+rf_model = joblib.load("ML_Models/xgb_speed_flip_model.pkl")
 flip_df = pd.read_csv("Speedflip_excel.csv")
 
 
@@ -107,13 +107,15 @@ def speed_flip_times(df, playerName):
 
 file_path = "replay_parquets/game_replay.parquet"
 
+file_path2 = "replay_parquets/data_source.parquet"
 
-df = pd.read_parquet(file_path)
+
+df = pd.read_parquet(file_path2)
 
 pd.set_option('display.max_columns', None)
 
 players = df['PlayerName'].unique().tolist()
-player = players[0]
+player = players[1]
 
 
 #speed_flip_df = filter_data_for_speed_flip(df, player)
@@ -124,13 +126,11 @@ player = players[0]
 
 #To find when speed flips occur pass in the dataframe and the playername to find when they do speed flips in Seconds Remaining
 
-build_training_dataframe(df, player, flip_df)
-
 print(" ")
 print(f"Speed Flip timestamps predicted by ML model:")
-#print(speed_flip_times(df, player))
-#speed_flip_count = len(speed_flip_times(df, player))
-#print(f"{speed_flip_count} predicted speed flips")
+print(speed_flip_times(df, player))
+speed_flip_count = len(speed_flip_times(df, player))
+print(f"{speed_flip_count} predicted speed flips")
 print(player)
 
 
