@@ -1,4 +1,5 @@
 from columns import relevant_columns
+from columns import mean_columns
 import pandas as pd
 
 def timestamp_to_seconds(timestamp):
@@ -13,28 +14,33 @@ def build_training_dataframe(df, playerName, flip_df, no_speed_flips=False):
     
     df_filtered = df[relevant_columns]
     
-    
+  
     df_player_data = df_filtered[df_filtered['PlayerName'] == playerName]
     
     
     # ✅ Keep only the first occurrence of each SecondsRemaining value
     #df_player_data = df_player_data.drop_duplicates(subset='SecondsRemaining', keep='first')
     
-    df_filtered_postions = df_player_data.dropna(subset=['CarPositionX']).copy()
+    df_filtered_postions = df_player_data.copy()
     
     
-    df_filtered_postions = df_filtered_postions.dropna(subset=['CarPositionX']).copy()
+    averaged_data = df_filtered_postions.groupby('SecondsRemaining').agg(mean_columns)
     
+    averaged_data['CarDodgeActive'] = df.groupby('SecondsRemaining')['CarDodgeActive'].any().astype(int)
+
+    # Reset index to make 'SecondsRemaining' a column again
+    averaged_data.reset_index(inplace=True)
+
+    # Sort the DataFrame by 'SecondsRemaining' in descending order
+    averaged_data = averaged_data.sort_values(by='SecondsRemaining', ascending=False)
     
     if no_speed_flips:
-        df_filtered_postions["SpeedFlip"] = df_filtered_postions["SecondsRemaining"].apply(lambda x: 0)
+        averaged_data["SpeedFlip"] = averaged_data["SecondsRemaining"].apply(lambda x: 0)
+        averaged_data.to_csv("training_data_2.csv", index=False)
     else:
-        df_filtered_postions["SpeedFlip"] = df_filtered_postions["SecondsRemaining"].apply(lambda x: 1 if x in timestamps_sec else 0)
+        averaged_data["SpeedFlip"] = averaged_data["SecondsRemaining"].apply(lambda x: 1 if x in timestamps_sec else 0)
+        averaged_data.to_csv("training_data.csv", index=False)
     
-    if no_speed_flips:
-        df_filtered_postions.to_csv("training_data_2.csv", index=False)
-    else:
-        df_filtered_postions.to_csv("training_data.csv", index=False)
     
 flip_df = pd.read_csv("Speedflip_excel.csv")
 

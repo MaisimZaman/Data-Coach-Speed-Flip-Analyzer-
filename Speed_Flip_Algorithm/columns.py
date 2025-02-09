@@ -31,8 +31,25 @@ relevant_columns = [
    # "CarThrottle",
   #  "CarBoostAmount",
     #"CarBoostActive",
-   # "CarDodgeActive",
+    "CarDodgeActive",
    # "CarDodgeImpulseX",
    # "CarDodgeImpulseY",
     #"CarDodgeImpulseZ"
 ]
+
+mean_columns = {
+    'CarPositionX': 'mean',
+    'CarPositionY': 'mean',
+    'CarPositionZ': 'mean',
+    'CarRotationX': 'mean',
+    'CarRotationY': 'mean',
+    'CarRotationZ': 'mean',
+    'CarRotationW': 'mean',
+    'CarLinearVelocityX': 'mean',
+    'CarLinearVelocityY': 'mean',
+    'CarLinearVelocityZ': 'mean',
+    'CarAngularVelocityX': 'mean',
+    'CarAngularVelocityY': 'mean',
+    'CarAngularVelocityZ': 'mean',
+    'CarSpeed': 'mean'
+    }

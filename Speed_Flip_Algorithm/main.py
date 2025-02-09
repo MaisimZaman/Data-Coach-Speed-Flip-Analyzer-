@@ -1,12 +1,15 @@
 import pandas as pd
-from columns import relevant_columns
+from columns import relevant_columns, mean_columns
 import math
 import joblib
 from build_dataframe import build_training_dataframe
 
 
 
-rf_model = joblib.load("ML_Models/xgb_speed_flip_model.pkl")
+rf_model = joblib.load("ML_Models/rf_speed_flip_model.pkl")
+xgb_model = joblib.load("ML_Models/xgb_speed_flip_model.pkl")
+
+curent_model = xgb_model
 flip_df = pd.read_csv("Speedflip_excel.csv")
 
 
@@ -22,7 +25,7 @@ print(f"{len(speed_flip_timestamps)} total real speed flips")
 
 
 
-def is_speed_flip(data, rf_model):
+def is_speed_flip(data, model):
     car_position_x = data['CarPositionX']
     car_position_y = data['CarPositionY']
     car_position_z = data['CarPositionZ']
@@ -37,6 +40,7 @@ def is_speed_flip(data, rf_model):
     car_angular_velocity_y = data['CarAngularVelocityY']
     car_angular_velocity_z = data['CarAngularVelocityZ']
     car_speed = data['CarSpeed']
+    car_dodge_active = data['CarDodgeActive']
     
     input_data = {
     "CarPositionX": car_position_x,
@@ -52,11 +56,12 @@ def is_speed_flip(data, rf_model):
     "CarAngularVelocityX": car_angular_velocity_x,
     "CarAngularVelocityY": car_angular_velocity_y,
     "CarAngularVelocityZ": car_angular_velocity_z,
-    "CarSpeed": car_speed
+    "CarSpeed": car_speed,
+    "CarDodgeActive": car_dodge_active
     }
     
     input_df = pd.DataFrame([input_data])
-    prediction = rf_model.predict(input_df)
+    prediction = model.predict(input_df)
     
     if prediction[0] == 1:
         return True
@@ -76,10 +81,18 @@ def convert_data_to_list(data):
 def filter_data_for_player(df, playerName):
     df_filtered = df[relevant_columns]
     df_player_data = df_filtered[df_filtered['PlayerName'] == playerName]
-    filtered_seconds = df_player_data.drop_duplicates(subset='SecondsRemaining', keep='first')
-    df_filtered_postions = df_player_data.dropna(subset=['CarPositionX'])
+    df_filtered_postions = df_player_data.copy()
+    averaged_data = df_filtered_postions.groupby('SecondsRemaining').agg(mean_columns)
     
-    return df_filtered_postions
+    averaged_data['CarDodgeActive'] = df.groupby('SecondsRemaining')['CarDodgeActive'].any().astype(int)
+
+    # Reset index to make 'SecondsRemaining' a column again
+    averaged_data.reset_index(inplace=True)
+
+    # Sort the DataFrame by 'SecondsRemaining' in descending order
+    averaged_data = averaged_data.sort_values(by='SecondsRemaining', ascending=False)
+    
+    return averaged_data
 
 
 
@@ -87,7 +100,7 @@ def filter_data_for_player(df, playerName):
 def get_all_speed_flips(p_data):
     speed_flips = []
     for data in convert_data_to_list(p_data):
-        if is_speed_flip(data, rf_model):
+        if is_speed_flip(data, curent_model):
             if not any(d.get('SecondsRemaining') == data['SecondsRemaining'] for d in speed_flips):
                 speed_flips.append(data)
     
@@ -110,12 +123,12 @@ file_path = "replay_parquets/game_replay.parquet"
 file_path2 = "replay_parquets/data_source.parquet"
 
 
-df = pd.read_parquet(file_path2)
+df = pd.read_parquet(file_path)
 
 pd.set_option('display.max_columns', None)
 
 players = df['PlayerName'].unique().tolist()
-player = players[1]
+player = players[0]
 
 
 #speed_flip_df = filter_data_for_speed_flip(df, player)

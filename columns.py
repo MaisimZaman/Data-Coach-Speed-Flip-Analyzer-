@@ -1,4 +1,4 @@
-relevant_columns = [
+relevant_columns2 = [
     #Player Name
     "PlayerName",
     #time
