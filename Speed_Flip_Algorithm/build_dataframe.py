@@ -18,9 +18,6 @@ def build_training_dataframe(df, playerName, flip_df, no_speed_flips=False):
     df_player_data = df_filtered[df_filtered['PlayerName'] == playerName]
     
     
-    # ✅ Keep only the first occurrence of each SecondsRemaining value
-    #df_player_data = df_player_data.drop_duplicates(subset='SecondsRemaining', keep='first')
-    
     df_filtered_postions = df_player_data.copy()
     
     
@@ -33,16 +30,22 @@ def build_training_dataframe(df, playerName, flip_df, no_speed_flips=False):
 
     # Sort the DataFrame by 'SecondsRemaining' in descending order
     averaged_data = averaged_data.sort_values(by='SecondsRemaining', ascending=False)
+
+    averaged_data = averaged_data.fillna(0)
+    
+
+
+   
     
     if no_speed_flips:
         averaged_data["SpeedFlip"] = averaged_data["SecondsRemaining"].apply(lambda x: 0)
-        averaged_data.to_csv("training_data_2.csv", index=False)
+        averaged_data.to_csv("Training_data/training_data_2.csv", index=False)
     else:
         averaged_data["SpeedFlip"] = averaged_data["SecondsRemaining"].apply(lambda x: 1 if x in timestamps_sec else 0)
-        averaged_data.to_csv("training_data.csv", index=False)
+        averaged_data.to_csv("Training_data/training_data.csv", index=False)
     
     
-flip_df = pd.read_csv("Speedflip_excel.csv")
+flip_df = pd.read_csv("Speedflip_mapping/Speedflip_excel.csv")
 
 file_path = "replay_parquets/game_replay.parquet"
 file_path2 = "replay_parquets/data_source.parquet"
@@ -59,4 +62,6 @@ player2 = players2[0]
 
 build_training_dataframe(df, player, flip_df)
 build_training_dataframe(df2, player2, flip_df, no_speed_flips=True)
+
+print("Data frames built")
 

@@ -3,11 +3,11 @@ relevant_columns = [
     "PlayerName",
     #time
     "SecondsRemaining",
-    # Car Position
-    "CarPositionX",
-    "CarPositionY",
-    "CarPositionZ",
-    
+
+    #car steer
+    "CarSteer",
+
+
     # Car Orientation (Rotation in Quaternion format)
     "CarRotationX",
     "CarRotationY",
@@ -38,9 +38,7 @@ relevant_columns = [
 ]
 
 mean_columns = {
-    'CarPositionX': 'mean',
-    'CarPositionY': 'mean',
-    'CarPositionZ': 'mean',
+    'CarSteer': 'mean',
     'CarRotationX': 'mean',
     'CarRotationY': 'mean',
     'CarRotationZ': 'mean',

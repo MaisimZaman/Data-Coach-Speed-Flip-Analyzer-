@@ -9,8 +9,8 @@ from build_dataframe import build_training_dataframe
 rf_model = joblib.load("ML_Models/rf_speed_flip_model.pkl")
 xgb_model = joblib.load("ML_Models/xgb_speed_flip_model.pkl")
 
-curent_model = xgb_model
-flip_df = pd.read_csv("Speedflip_excel.csv")
+curent_model = rf_model
+flip_df = pd.read_csv("Speedflip_mapping/Speedflip_excel.csv")
 
 
 speed_flip_timestamps = flip_df.loc[flip_df["Flip Type"] == "Speed Flip", "TimeStamp"].tolist()
@@ -26,9 +26,7 @@ print(f"{len(speed_flip_timestamps)} total real speed flips")
 
 
 def is_speed_flip(data, model):
-    car_position_x = data['CarPositionX']
-    car_position_y = data['CarPositionY']
-    car_position_z = data['CarPositionZ']
+    car_steer = data['CarSteer']
     car_rotation_x = data['CarRotationX']
     car_rotation_y = data['CarRotationY']
     car_rotation_z = data['CarRotationZ']
@@ -43,9 +41,7 @@ def is_speed_flip(data, model):
     car_dodge_active = data['CarDodgeActive']
     
     input_data = {
-    "CarPositionX": car_position_x,
-    "CarPositionY": car_position_y,
-    "CarPositionZ": car_position_z,
+    "CarSteer": car_steer,
     "CarRotationX": car_rotation_x,
     "CarRotationY": car_rotation_y,
     "CarRotationZ": car_rotation_z,
@@ -121,6 +117,8 @@ def speed_flip_times(df, playerName):
 file_path = "replay_parquets/game_replay.parquet"
 
 file_path2 = "replay_parquets/data_source.parquet"
+
+file_path3 = "replay_parquets/parquet1.parquet"
 
 
 df = pd.read_parquet(file_path)
