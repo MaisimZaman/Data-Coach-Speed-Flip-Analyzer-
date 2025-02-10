@@ -9,7 +9,7 @@ from build_dataframe import build_training_dataframe
 rf_model = joblib.load("ML_Models/rf_speed_flip_model.pkl")
 xgb_model = joblib.load("ML_Models/xgb_speed_flip_model.pkl")
 
-curent_model = rf_model
+curent_model = xgb_model
 flip_df = pd.read_csv("Speedflip_mapping/Speedflip_excel.csv")
 
 
