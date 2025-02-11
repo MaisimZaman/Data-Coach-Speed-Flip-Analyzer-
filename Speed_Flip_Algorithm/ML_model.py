@@ -6,14 +6,16 @@ from sklearn.metrics import accuracy_score, classification_report
 import pandas as pd
 import joblib
 
-file_path = "Training_data/training_data.csv"
+file_path = "Training_data/training_data_1.csv"
 file_path2 = "Training_data/training_data_2.csv"
+file_path3 = "Training_data/training_data_3.csv"
 
 
 training_df1 = pd.read_csv(file_path)
 training_df2 = pd.read_csv(file_path2)
+training_df3 = pd.read_csv(file_path3)
 
-training_df = pd.concat([training_df1, training_df2], ignore_index=True)
+training_df = pd.concat([training_df1, training_df2, training_df3], ignore_index=True)
 
 # Define features and target variable
 features = [
@@ -27,7 +29,7 @@ X = training_df[features]  # Feature set
 y = training_df["SpeedFlip"]  # Target variable
 
 #training the model
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=42, stratify=y)
 
 def build_random_forest_model(X_train, y_train):
     rf_model = RandomForestClassifier(n_estimators=100, max_depth=10, random_state=42, class_weight="balanced")
@@ -41,6 +43,8 @@ def build_xgb_model(X_train, y_train):
     xgb_model.fit(X_train, y_train)
     
     return xgb_model
+
+
 
 rf_model = build_random_forest_model(X_train, y_train)
 

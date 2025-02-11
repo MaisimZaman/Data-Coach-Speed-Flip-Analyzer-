@@ -118,7 +118,7 @@ file_path = "replay_parquets/game_replay.parquet"
 
 file_path2 = "replay_parquets/data_source.parquet"
 
-file_path3 = "replay_parquets/parquet1.parquet"
+file_path3 = "replay_parquets/parquet2.parquet"
 
 
 df = pd.read_parquet(file_path)
@@ -128,14 +128,6 @@ pd.set_option('display.max_columns', None)
 players = df['PlayerName'].unique().tolist()
 player = players[0]
 
-
-#speed_flip_df = filter_data_for_speed_flip(df, player)
-#not_speed_flip_df = filter_data_for_not_speed_flip(df, player)
-
-#speed_flip_df.to_csv("speed_flip_stats.csv", index=False) 
-#not_speed_flip_df.to_csv("not_speed_flip_stats.csv")
-
-#To find when speed flips occur pass in the dataframe and the playername to find when they do speed flips in Seconds Remaining
 
 print(" ")
 print(f"Speed Flip timestamps predicted by ML model:")
