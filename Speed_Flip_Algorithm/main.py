@@ -122,13 +122,15 @@ file_path = "replay_parquets/game_replay.parquet"
 
 file_path2 = "replay_parquets/data_source.parquet"
 
+file_path3 = "replay_parquets/parquet1.parquet"
 
-df = pd.read_parquet(file_path)
+
+df = pd.read_parquet(file_path3)
 
 pd.set_option('display.max_columns', None)
 
 players = df['PlayerName'].unique().tolist()
-player = players[0]
+player = players[1]
 
 
 #speed_flip_df = filter_data_for_speed_flip(df, player)
