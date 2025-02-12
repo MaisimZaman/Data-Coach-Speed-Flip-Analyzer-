@@ -39,6 +39,8 @@ def is_speed_flip(data, model):
     car_angular_velocity_z = data['CarAngularVelocityZ']
     car_speed = data['CarSpeed']
     car_dodge_active = data['CarDodgeActive']
+    car_jump_active = data['CarJumpActive']
+    car_boost_amount = data['CarBoostAmount']
     
     input_data = {
     "CarSteer": car_steer,
@@ -53,7 +55,9 @@ def is_speed_flip(data, model):
     "CarAngularVelocityY": car_angular_velocity_y,
     "CarAngularVelocityZ": car_angular_velocity_z,
     "CarSpeed": car_speed,
-    "CarDodgeActive": car_dodge_active
+    "CarBoostAmount": car_boost_amount,
+    "CarDodgeActive": car_dodge_active,
+    "CarJumpActive": car_jump_active,
     }
     
     input_df = pd.DataFrame([input_data])
@@ -80,7 +84,8 @@ def filter_data_for_player(df, playerName):
     df_filtered_postions = df_player_data.copy()
     averaged_data = df_filtered_postions.groupby('SecondsRemaining').agg(mean_columns)
     
-    averaged_data['CarDodgeActive'] = df.groupby('SecondsRemaining')['CarDodgeActive'].any().astype(int)
+    averaged_data['CarDodgeActive'] = df_filtered_postions.groupby('SecondsRemaining')['CarDodgeActive'].any().astype(int)
+    averaged_data['CarJumpActive'] = df_filtered_postions.groupby('SecondsRemaining')['CarJumpActive'].any().astype(int)
 
     # Reset index to make 'SecondsRemaining' a column again
     averaged_data.reset_index(inplace=True)

@@ -28,26 +28,40 @@ features = [
     "CarSteer", "CarRotationX", "CarRotationY","CarRotationZ",
     "CarRotationW", "CarLinearVelocityX", "CarLinearVelocityY", "CarLinearVelocityZ",
     "CarAngularVelocityX", "CarAngularVelocityY", "CarAngularVelocityZ",
-    "CarSpeed", "CarDodgeActive"
+    "CarSpeed", "CarBoostAmount", "CarDodgeActive", "CarJumpActive"
 ]
 
 X = training_df[features]  # Feature set
 y = training_df["SpeedFlip"]  # Target variable
 
 #training the model
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=42, stratify=y)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
 
 def build_random_forest_model(X_train, y_train):
-    rf_model = RandomForestClassifier(n_estimators=100, max_depth=10, random_state=42, class_weight="balanced")
-    rf_model.fit(X_train, y_train)
+    rf_model = RandomForestClassifier(
+        n_estimators=300,         # More trees (higher accuracy)
+        max_depth=20,             # Deeper trees (captures more patterns)
+        min_samples_split=2,      # Allow frequent splitting
+        min_samples_leaf=1,       # Smaller leaves help detect rare cases
+        max_features="sqrt",      # Improves generalization
+        class_weight="balanced",  # Handles imbalanced classes
+        random_state=42
+    )
     
+    rf_model.fit(X_train, y_train)
     return rf_model
 
 def build_xgb_model(X_train, y_train):
-    xgb_model = xgb.XGBClassifier(n_estimators=200, max_depth=6, learning_rate=0.1, random_state=42)
-
-    xgb_model.fit(X_train, y_train)
+    xgb_model = xgb.XGBClassifier(
+        n_estimators=500,        # More boosting rounds
+        max_depth=8,             # More complexity allowed
+        learning_rate=0.05,      # Lower learning rate for better generalization
+        colsample_bytree=0.8,    # Reduces overfitting
+        scale_pos_weight=1.2,    # Helps with class imbalance
+        random_state=42
+    )
     
+    xgb_model.fit(X_train, y_train)
     return xgb_model
 
 

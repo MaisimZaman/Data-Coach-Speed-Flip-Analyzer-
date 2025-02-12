@@ -29,9 +29,10 @@ relevant_columns = [
     
     # Player Inputs
    # "CarThrottle",
-  #  "CarBoostAmount",
+    "CarBoostAmount",
     #"CarBoostActive",
     "CarDodgeActive",
+    "CarJumpActive",
    # "CarDodgeImpulseX",
    # "CarDodgeImpulseY",
     #"CarDodgeImpulseZ"
@@ -49,5 +50,6 @@ mean_columns = {
     'CarAngularVelocityX': 'mean',
     'CarAngularVelocityY': 'mean',
     'CarAngularVelocityZ': 'mean',
-    'CarSpeed': 'mean'
+    'CarSpeed': 'mean',
+    'CarBoostAmount': 'mean',
     }
