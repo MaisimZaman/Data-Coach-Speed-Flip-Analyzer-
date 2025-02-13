@@ -123,12 +123,12 @@ file_path3 = "replay_parquets/parquet1.parquet"
 file_path3 = "replay_parquets/parquet2.parquet"
 
 
-df = pd.read_parquet(file_path)
+df = pd.read_parquet(file_path3)
 
 pd.set_option('display.max_columns', None)
 
 players = df['PlayerName'].unique().tolist()
-player = players[0]
+player = players[3]
 
 
 print(" ")
