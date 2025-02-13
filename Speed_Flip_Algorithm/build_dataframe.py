@@ -36,7 +36,8 @@ def build_training_dataframe(df, playerName, map_df, num=1, multi_player=False, 
     
     averaged_data = df_filtered_postions.groupby('SecondsRemaining').agg(mean_columns)
     
-    averaged_data['CarDodgeActive'] = df.groupby('SecondsRemaining')['CarDodgeActive'].any().astype(int)
+    averaged_data['CarDodgeActive'] = df_filtered_postions.groupby('SecondsRemaining')['CarDodgeActive'].any().astype(int)
+    averaged_data['CarJumpActive'] = df_filtered_postions.groupby('SecondsRemaining')['CarJumpActive'].any().astype(int)
 
     # Reset index to make 'SecondsRemaining' a column again
     averaged_data.reset_index(inplace=True)
@@ -92,7 +93,6 @@ build_training_dataframe(df2, player2, map_df, num=0.5, no_speed_flips=True)
 
 build_multiplayer_dataframe(players3, df3, map_df2)
 
-print(timestamp_sec_for_player(players3[0], df3))
 
 
 print("Data frames built")

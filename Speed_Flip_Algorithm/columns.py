@@ -7,6 +7,8 @@ relevant_columns = [
     #car steer
     "CarSteer",
 
+    #Car positions
+    "CarPositionZ",
 
     # Car Orientation (Rotation in Quaternion format)
     "CarRotationX",
@@ -29,9 +31,10 @@ relevant_columns = [
     
     # Player Inputs
    # "CarThrottle",
-  #  "CarBoostAmount",
+    "CarBoostAmount",
     #"CarBoostActive",
     "CarDodgeActive",
+    "CarJumpActive",
    # "CarDodgeImpulseX",
    # "CarDodgeImpulseY",
     #"CarDodgeImpulseZ"
@@ -39,6 +42,7 @@ relevant_columns = [
 
 mean_columns = {
     'CarSteer': 'mean',
+    'CarPositionZ': 'mean',
     'CarRotationX': 'mean',
     'CarRotationY': 'mean',
     'CarRotationZ': 'mean',
@@ -49,5 +53,6 @@ mean_columns = {
     'CarAngularVelocityX': 'mean',
     'CarAngularVelocityY': 'mean',
     'CarAngularVelocityZ': 'mean',
-    'CarSpeed': 'mean'
+    'CarSpeed': 'mean',
+    'CarBoostAmount': 'mean',
     }

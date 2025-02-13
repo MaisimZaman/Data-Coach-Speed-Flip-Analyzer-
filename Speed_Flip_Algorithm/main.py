@@ -23,10 +23,20 @@ print(speed_flip_timestamps)
 print(f"{len(speed_flip_timestamps)} total real speed flips")
 
 
-
+def predict_with_custom_threshold(model, input_data, threshold=0.7):
+    input_df = pd.DataFrame([input_data])
+    # Get probabilities for the positive class
+    probabilities = model.predict_proba(input_df)[:, 1]  # Assuming class '1' is at index 1
+    # Apply the custom threshold to determine the prediction
+    prediction = (probabilities > threshold).astype(int)
+    
+    if prediction[0] == 1:
+        return True
+    return False
 
 def is_speed_flip(data, model):
     car_steer = data['CarSteer']
+    car_position_z = data['CarPositionZ']
     car_rotation_x = data['CarRotationX']
     car_rotation_y = data['CarRotationY']
     car_rotation_z = data['CarRotationZ']
@@ -39,9 +49,12 @@ def is_speed_flip(data, model):
     car_angular_velocity_z = data['CarAngularVelocityZ']
     car_speed = data['CarSpeed']
     car_dodge_active = data['CarDodgeActive']
+    car_jump_active = data['CarJumpActive']
+    car_boost_amount = data['CarBoostAmount']
     
     input_data = {
     "CarSteer": car_steer,
+    "CarPositionZ": car_position_z,
     "CarRotationX": car_rotation_x,
     "CarRotationY": car_rotation_y,
     "CarRotationZ": car_rotation_z,
@@ -53,15 +66,12 @@ def is_speed_flip(data, model):
     "CarAngularVelocityY": car_angular_velocity_y,
     "CarAngularVelocityZ": car_angular_velocity_z,
     "CarSpeed": car_speed,
-    "CarDodgeActive": car_dodge_active
+    "CarBoostAmount": car_boost_amount,
+    "CarDodgeActive": car_dodge_active,
+    "CarJumpActive": car_jump_active,
     }
     
-    input_df = pd.DataFrame([input_data])
-    prediction = model.predict(input_df)
-    
-    if prediction[0] == 1:
-        return True
-    return False
+    return predict_with_custom_threshold(model, input_data, threshold=0.06)
 
 
         
@@ -80,7 +90,8 @@ def filter_data_for_player(df, playerName):
     df_filtered_postions = df_player_data.copy()
     averaged_data = df_filtered_postions.groupby('SecondsRemaining').agg(mean_columns)
     
-    averaged_data['CarDodgeActive'] = df.groupby('SecondsRemaining')['CarDodgeActive'].any().astype(int)
+    averaged_data['CarDodgeActive'] = df_filtered_postions.groupby('SecondsRemaining')['CarDodgeActive'].any().astype(int)
+    averaged_data['CarJumpActive'] = df_filtered_postions.groupby('SecondsRemaining')['CarJumpActive'].any().astype(int)
 
     # Reset index to make 'SecondsRemaining' a column again
     averaged_data.reset_index(inplace=True)
@@ -120,15 +131,15 @@ file_path2 = "replay_parquets/data_source.parquet"
 
 file_path3 = "replay_parquets/parquet1.parquet"
 
-file_path3 = "replay_parquets/parquet2.parquet"
+file_path4 = "replay_parquets/parquet2.parquet"
 
 
-df = pd.read_parquet(file_path3)
+df = pd.read_parquet(file_path)
 
 pd.set_option('display.max_columns', None)
 
 players = df['PlayerName'].unique().tolist()
-player = players[3]
+player = players[0]
 
 
 print(" ")
