@@ -2,7 +2,7 @@ import pandas as pd
 from columns import relevant_columns, mean_columns
 import math
 import joblib
-from build_dataframe import build_training_dataframe
+from build_dataframe import timestamp_sec_for_player, timestamp_to_seconds
 
 
 
@@ -11,15 +11,18 @@ xgb_model = joblib.load("ML_Models/xgb_speed_flip_model.pkl")
 
 curent_model = xgb_model
 flip_df = pd.read_csv("Speedflip_mapping/Speedflip_excel.csv")
+flip_df2 = pd.read_csv("Speedflip_mapping/Speedflip_excel2.csv")
+
+
 
 
 speed_flip_timestamps = flip_df.loc[flip_df["Flip Type"] == "Speed Flip", "TimeStamp"].tolist()
-not_speed_flip_timestamps = flip_df.loc[flip_df["Flip Type"] != "Speed Flip", "TimeStamp"].tolist()
+speed_flip_timestamps2 = flip_df2.loc[flip_df2["PLAYER"] ==  "Metsanauris", "TIMESTAMP"].tolist()
 
 
     
 print("Actual Speed Flip Timestamps:")
-print(speed_flip_timestamps)
+print(speed_flip_timestamps2)
 print(f"{len(speed_flip_timestamps)} total real speed flips")
 
 
@@ -71,7 +74,7 @@ def is_speed_flip(data, model):
     "CarJumpActive": car_jump_active,
     }
     
-    return predict_with_custom_threshold(model, input_data, threshold=0.06)
+    return predict_with_custom_threshold(model, input_data, threshold=0.1)
 
 
         
@@ -133,13 +136,13 @@ file_path3 = "replay_parquets/parquet1.parquet"
 
 file_path4 = "replay_parquets/parquet2.parquet"
 
-
-df = pd.read_parquet(file_path)
-
+df = pd.read_parquet(file_path4)
 pd.set_option('display.max_columns', None)
 
 players = df['PlayerName'].unique().tolist()
 player = players[0]
+
+
 
 
 print(" ")
