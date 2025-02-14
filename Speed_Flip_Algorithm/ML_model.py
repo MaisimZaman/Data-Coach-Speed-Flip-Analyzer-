@@ -9,7 +9,7 @@ from pathlib import Path
 
 dir_path = Path('Training_data')
 
-def build_traing_df(dir_path):
+def build_training_df(dir_path):
     training_dfs = []
     
     for file_path in dir_path.rglob('*'):  # '*' matches all files and directories
@@ -21,7 +21,7 @@ def build_traing_df(dir_path):
     
     return final_df            
 
-training_df = build_traing_df(dir_path)
+training_df = build_training_df(dir_path)
 
 # Define features and target variable
 features = [

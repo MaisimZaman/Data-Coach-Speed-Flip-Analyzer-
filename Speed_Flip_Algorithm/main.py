@@ -10,7 +10,7 @@ rf_model = joblib.load("ML_Models/rf_speed_flip_model.pkl")
 xgb_model = joblib.load("ML_Models/xgb_speed_flip_model.pkl")
 
 curent_model = xgb_model
-flip_df = pd.read_csv("Speedflip_mapping/Speedflip_excel.csv")
+flip_df = pd.read_csv("Testing_mapping/Speedflip_excel1.csv")
 
 
 speed_flip_timestamps = flip_df.loc[flip_df["Flip Type"] == "Speed Flip", "TimeStamp"].tolist()
@@ -71,7 +71,7 @@ def is_speed_flip(data, model):
     "CarJumpActive": car_jump_active,
     }
     
-    return predict_with_custom_threshold(model, input_data, threshold=0.06)
+    return predict_with_custom_threshold(model, input_data, threshold=0.1)
 
 
         
@@ -125,13 +125,13 @@ def speed_flip_times(df, playerName):
     
     
 
-file_path = "replay_parquets/game_replay.parquet"
+file_path = "Testing_parquets/game_replay.parquet"
 
-file_path2 = "replay_parquets/data_source.parquet"
+file_path2 = "Testing_parquets/data_source.parquet"
 
-file_path3 = "replay_parquets/parquet1.parquet"
+file_path3 = "Testing_parquets/parquet1.parquet"
 
-file_path4 = "replay_parquets/parquet2.parquet"
+file_path4 = "replay_parquets/parquet4.parquet"
 
 
 df = pd.read_parquet(file_path)
