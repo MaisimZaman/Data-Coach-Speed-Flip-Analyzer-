@@ -1,6 +1,7 @@
 from columns import relevant_columns
 from columns import mean_columns
 import pandas as pd
+from pathlib import Path
 
 def timestamp_to_seconds(timestamp):
     """Converts a timestamp in MM:SS format to total seconds."""
@@ -58,32 +59,55 @@ def build_training_dataframe(df, playerName, map_df, num=1, multi_player=False, 
         averaged_data["SpeedFlip"] = averaged_data["SecondsRemaining"].apply(lambda x: 1 if x in timestamps_sec else 0)
         averaged_data.to_csv(f"Training_data/training_data_{num}.csv", index=False)
         
-def build_multiplayer_dataframe(players, df, map_df):
+def build_multiplayer_dataframe(players, df, map_df, step=0):
     
     for p in range(len(players)):
-        build_training_dataframe(df, players[p], map_df, num=p+1, multi_player=True)
+        build_training_dataframe(df, players[p], map_df, num=step+p+1, multi_player=True)
         
-    
-    
-map_df = pd.read_csv("Speedflip_mapping/Speedflip_excel.csv")
-map_df2 = pd.read_csv("Speedflip_mapping/Speedflip_excel2.csv")
+        
+def build_training_files(parquet_path, map_path):
 
-file_path = "replay_parquets/game_replay.parquet"
-file_path2 = "replay_parquets/data_source.parquet"
-file_path3 = "replay_parquets/parquet2.parquet"
+    parquet_files = list(Path(parquet_path).rglob('*'))  # Assuming parquet_path is a Path object
+    map_files = list(Path(map_path).rglob('*'))  # Assuming map_path is a Path object
+
+    player_count = 0
+
+    # Ensure both lists have the same length and corresponding files are in order
+    if len(parquet_files) != len(map_files):
+        print("Error: The number of parquet files and map files does not match.")
+        return
+
+    for parquet_file, map_file in zip(parquet_files, map_files):
+        if parquet_file.is_file() and map_file.is_file(): 
+            p_df = pd.read_parquet(parquet_file)
+            map_df = pd.read_csv(map_file)
+
+            players = p_df['PlayerName'].unique().tolist()
+        
+            build_multiplayer_dataframe(players, p_df, map_df, step=player_count)
+            player_count += len(players)
+
+
+
+
+parquet_path = 'replay_parquets'
+map_path = 'Speedflip_mapping'
+
+    
+map_df = pd.read_csv("Testing_mapping/Speedflip_excel1.csv")
+
+file_path = "Testing_parquets/game_replay.parquet"
+file_path1 = "Testing_parquets/data_source.parquet"
 
 df = pd.read_parquet(file_path)
-df2 = pd.read_parquet(file_path2)
-df3 = pd.read_parquet(file_path3)
+df2 = pd.read_parquet(file_path1)
 
 players = df['PlayerName'].unique().tolist()
 players2 = df2['PlayerName'].unique().tolist()
-players3 = df3['PlayerName'].unique().tolist()
+
 
 player = players[0]
 player2 = players2[0]
-
-
 
 
 build_training_dataframe(df, player, map_df, num=0)
@@ -91,7 +115,9 @@ build_training_dataframe(df, player, map_df, num=0)
     
 build_training_dataframe(df2, player2, map_df, num=0.5, no_speed_flips=True)
 
-build_multiplayer_dataframe(players3, df3, map_df2)
+
+build_training_files(parquet_path, map_path)
+
 
 
 
