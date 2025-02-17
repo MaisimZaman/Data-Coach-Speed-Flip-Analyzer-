@@ -9,7 +9,7 @@ from build_dataframe import timestamp_sec_for_player, timestamp_to_seconds
 rf_model = joblib.load("ML_Models/rf_speed_flip_model.pkl")
 xgb_model = joblib.load("ML_Models/xgb_speed_flip_model.pkl")
 
-curent_model = xgb_model
+curent_model = rf_model
 flip_df = pd.read_csv("Testing_mapping/Speedflip_excel1.csv")
 flip_df2 = pd.read_csv("Speedflip_mapping/Speedflip_excel2.csv")
 
@@ -70,12 +70,12 @@ def is_speed_flip(data, model):
     "CarAngularVelocityY": car_angular_velocity_y,
     "CarAngularVelocityZ": car_angular_velocity_z,
     "CarSpeed": car_speed,
-    "CarBoostAmount": car_boost_amount,
     "CarDodgeActive": car_dodge_active,
+    "CarBoostAmount": car_boost_amount,
     "CarJumpActive": car_jump_active,
     }
     
-    return predict_with_custom_threshold(model, input_data, threshold=0.3)
+    return predict_with_custom_threshold(model, input_data, threshold=0.9)
 
 
         
