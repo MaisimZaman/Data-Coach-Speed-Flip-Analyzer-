@@ -1,13 +1,14 @@
 #ML Model using Random Forest Classifier
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier, IsolationForest
 import xgboost as xgb
 import numpy as np
 from sklearn.model_selection import train_test_split, GridSearchCV
-from sklearn.metrics import accuracy_score, classification_report
+from sklearn.metrics import classification_report, confusion_matrix, accuracy_score, roc_auc_score, precision_recall_curve, auc
 import pandas as pd
 import joblib
 from pathlib import Path
 from imblearn.over_sampling import SMOTE
+from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import precision_score, precision_recall_curve, f1_score
 import matplotlib.pyplot as plt
 
@@ -20,7 +21,11 @@ def build_training_df(dir_path):
     for file_path in dir_path.rglob('*'):  # '*' matches all files and directories
         if file_path.is_file():  # This check ensures only files are considered
             training_df = pd.read_csv(file_path)
-            training_dfs.append(training_df)
+            df_class_0 = training_df[training_df['SpeedFlip'] == 0]
+            df_class_1 = training_df[training_df['SpeedFlip'] == 1]
+            df_class_0_under = df_class_0.sample(n=len(df_class_1), random_state=42)  # ensure reproducibility with a random state
+            df_balanced = pd.concat([df_class_0_under, df_class_1], axis=0)
+            training_dfs.append(df_balanced)
     
     final_df = pd.concat(training_dfs, ignore_index=True)
     
@@ -29,8 +34,9 @@ def build_training_df(dir_path):
 training_df = build_training_df(dir_path)
 
 # Define features and target variable
+
 features = [
-    "CarSteer", "CarPositionZ", "CarRotationX", "CarRotationY","CarRotationZ",
+    "SecondsRemaining", "CarSteer", "CarPositionZ", "CarRotationX", "CarRotationY","CarRotationZ",
     "CarRotationW", "CarLinearVelocityX", "CarLinearVelocityY", "CarLinearVelocityZ",
     "CarAngularVelocityX", "CarAngularVelocityY", "CarAngularVelocityZ",
     "CarSpeed", "CarDodgeActive","CarBoostAmount",  "CarJumpActive"
@@ -38,11 +44,21 @@ features = [
 
 
 
+
+
+
+
 X = training_df[features]  # Feature set
 y = training_df["SpeedFlip"]  # Target variable
 
+
+
 #training the model
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=42, stratify=y)
+
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)  # Assuming X_train is your training data
+X_test_scaled = scaler.transform(X_test)
 
 def build_random_forest_model(X_train, y_train, class_weight=None):
 
@@ -70,6 +86,8 @@ def build_random_forest_model(X_train, y_train, class_weight=None):
 
     return rf_model
 
+
+
 def build_xgb_model(X_train, y_train):
     # Calculate scale_pos_weight
     class_counts = y_train.value_counts()
@@ -96,9 +114,11 @@ def build_xgb_model(X_train, y_train):
 
 
 
+
 rf_model = build_random_forest_model(X_train, y_train)
 
 xgb_model = build_xgb_model(X_train, y_train)
+
 
 
 
@@ -109,10 +129,34 @@ joblib.dump(rf_model, "ML_Models/rf_speed_flip_model.pkl")
 xgb_pred = xgb_model.predict(X_test)
 rf_pred = rf_model.predict(X_test)
 
-report_xgb = classification_report(y_test, xgb_pred, target_names=['Class 0', 'Class 1'])
-report_rf = classification_report(y_test, rf_pred, target_names=['Class 0', 'Class 1'])
+
+
+#Balanced dataset calssification report
+report_xgb = classification_report(y_test, xgb_pred, target_names=['No speed flip (0)', 'Speed flip (1)'])
+report_rf = classification_report(y_test, rf_pred, target_names=['No speed flip (0)', 'Speed flip (1)'])
+
 
 print("Classification Report for XGBoost Model:")
 print(report_xgb)
-print("\nClassification Report for Random Forest Model:")
-print(report_rf)
+
+
+#Testing on unbalanced data
+
+# Assuming you have a trained model 'model'
+predictions = xgb_model.predict(X_test_scaled)
+
+# Print classification report
+print(classification_report(y_test, predictions, target_names=['Class 0', 'Class 1']))
+
+# Additional useful metrics
+print("Confusion Matrix:\n", confusion_matrix(y_test, predictions))
+print("Accuracy:", accuracy_score(y_test, predictions))
+
+# If your model can output probabilities and you want to assess ROC AUC or Precision-Recall AUC
+probabilities = xgb_model.predict_proba(X_test_scaled)[:, 1]  # Probabilities for class 1
+print("ROC AUC Score:", roc_auc_score(y_test, probabilities))
+
+precision, recall, _ = precision_recall_curve(y_test, probabilities)
+print("Precision-Recall AUC:", auc(recall, precision))
+
+

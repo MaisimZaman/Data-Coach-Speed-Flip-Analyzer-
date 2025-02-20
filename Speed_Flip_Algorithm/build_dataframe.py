@@ -112,10 +112,6 @@ player2 = players2[0]
 
 build_training_dataframe(df, player, map_df, num=0)
 
-    
-build_training_dataframe(df2, player2, map_df, num=0.5, no_speed_flips=True)
-
-
 build_training_files(parquet_path, map_path)
 
 

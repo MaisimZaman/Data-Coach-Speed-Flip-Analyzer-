@@ -27,7 +27,7 @@ print(speed_flip_timestamps)
 print(f"{len(speed_flip_timestamps)} total real speed flips")
 
 
-def predict_with_custom_threshold(model, input_data, threshold=0.7):
+def predict_with_custom_threshold(model, input_data, threshold=0.83):
     input_df = pd.DataFrame([input_data])
     # Get probabilities for the positive class
     probabilities = model.predict_proba(input_df)[:, 1]  # Assuming class '1' is at index 1
@@ -39,6 +39,7 @@ def predict_with_custom_threshold(model, input_data, threshold=0.7):
     return False
 
 def is_speed_flip(data, model):
+    seconds_remaining = data['SecondsRemaining']
     car_steer = data['CarSteer']
     car_position_z = data['CarPositionZ']
     car_rotation_x = data['CarRotationX']
@@ -57,6 +58,7 @@ def is_speed_flip(data, model):
     car_boost_amount = data['CarBoostAmount']
     
     input_data = {
+    "SecondsRemaining": seconds_remaining,
     "CarSteer": car_steer,
     "CarPositionZ": car_position_z,
     "CarRotationX": car_rotation_x,
@@ -75,7 +77,7 @@ def is_speed_flip(data, model):
     "CarJumpActive": car_jump_active,
     }
     
-    return predict_with_custom_threshold(model, input_data, threshold=0.9)
+    return predict_with_custom_threshold(model, input_data, threshold=0.8)
 
 
         
@@ -137,7 +139,7 @@ file_path3 = "Testing_parquets/parquet1.parquet"
 
 file_path4 = "replay_parquets/parquet4.parquet"
 
-df = pd.read_parquet(file_path)
+df = pd.read_parquet(file_path4)
 pd.set_option('display.max_columns', None)
 
 players = df['PlayerName'].unique().tolist()
