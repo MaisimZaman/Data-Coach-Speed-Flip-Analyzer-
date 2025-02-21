@@ -41,7 +41,6 @@ def predict_with_custom_threshold(model, input_data, threshold=0.83):
 def is_speed_flip(data, model):
     seconds_remaining = data['SecondsRemaining']
     car_steer = data['CarSteer']
-    car_position_z = data['CarPositionZ']
     car_rotation_x = data['CarRotationX']
     car_rotation_y = data['CarRotationY']
     car_rotation_z = data['CarRotationZ']
@@ -55,12 +54,11 @@ def is_speed_flip(data, model):
     car_speed = data['CarSpeed']
     car_dodge_active = data['CarDodgeActive']
     car_jump_active = data['CarJumpActive']
-    car_boost_amount = data['CarBoostAmount']
+   
     
     input_data = {
     "SecondsRemaining": seconds_remaining,
     "CarSteer": car_steer,
-    "CarPositionZ": car_position_z,
     "CarRotationX": car_rotation_x,
     "CarRotationY": car_rotation_y,
     "CarRotationZ": car_rotation_z,
@@ -73,7 +71,6 @@ def is_speed_flip(data, model):
     "CarAngularVelocityZ": car_angular_velocity_z,
     "CarSpeed": car_speed,
     "CarDodgeActive": car_dodge_active,
-    "CarBoostAmount": car_boost_amount,
     "CarJumpActive": car_jump_active,
     }
     

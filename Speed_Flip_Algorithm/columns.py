@@ -8,7 +8,7 @@ relevant_columns = [
     "CarSteer",
 
     #Car positions
-    "CarPositionZ",
+    "CarThrottle",
 
     # Car Orientation (Rotation in Quaternion format)
     "CarRotationX",
@@ -42,7 +42,7 @@ relevant_columns = [
 
 mean_columns = {
     'CarSteer': 'mean',
-    'CarPositionZ': 'mean',
+    'CarThrottle': 'mean',
     'CarRotationX': 'mean',
     'CarRotationY': 'mean',
     'CarRotationZ': 'mean',
@@ -54,5 +54,4 @@ mean_columns = {
     'CarAngularVelocityY': 'mean',
     'CarAngularVelocityZ': 'mean',
     'CarSpeed': 'mean',
-    'CarBoostAmount': 'mean',
     }
