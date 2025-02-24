@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 
 dir_path = Path('Training_data')
 
-def build_balance_df(training_df, balance_ratio=0.5):
+def build_balance_df(training_df, balance_ratio=0.30):
     # Step 1: Split dataset into Class 0 and Class 1
     df_class_0 = training_df[training_df['SpeedFlip'] == 0]
     df_class_1 = training_df[training_df['SpeedFlip'] == 1]  # Class 1 is always the minority class
@@ -42,11 +42,12 @@ def build_training_df(dir_path):
     for file_path in dir_path.rglob('*'):  # '*' matches all files and directories
         if file_path.is_file():  # This check ensures only files are considered
             training_df = pd.read_csv(file_path)
+            training_df = build_balance_df(training_df)
             df_class_0 = training_df[training_df['SpeedFlip'] == 0]
             df_class_1 = training_df[training_df['SpeedFlip'] == 1]
             df_class_0_under = df_class_0.sample(n=len(df_class_1), random_state=42)  # ensure reproducibility with a random state
             df_balanced = pd.concat([df_class_0_under, df_class_1], axis=0)
-            training_dfs.append(df_balanced)
+            training_dfs.append(training_df)
     
     final_df = pd.concat(training_dfs, ignore_index=True)
     
@@ -74,7 +75,7 @@ y = training_df["SpeedFlip"]  # Target variable
 
 
 #training the model
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=42, stratify=y)
 
 scaler = StandardScaler()
 X_train_scaled = scaler.fit_transform(X_train)  # Assuming X_train is your training data
@@ -87,7 +88,7 @@ def build_random_forest_model(X_train, y_train, class_weight=None):
         class_weight = {0: 1, 1: 3}  # Default weights, can be adjusted
 
     # Applying SMOTE to balance the dataset
-    smote = SMOTE(random_state=42)
+    smote = SMOTE(sampling_strategy=0.5, random_state=42) 
     X_resampled, y_resampled = smote.fit_resample(X_train, y_train)
 
     # Creating the Random Forest model
@@ -112,10 +113,10 @@ def build_xgb_model(X_train, y_train):
     # Calculate scale_pos_weight
     class_counts = y_train.value_counts()
     # Increase the scale_pos_weight significantly to put a very high emphasis on Class 1
-    scale_pos_weight = (class_counts[0] / class_counts[1]) * 1.1
+    scale_pos_weight = (class_counts[0] / class_counts[1]) * 1.3
 
     # Applying SMOTE to balance the dataset
-    smote = SMOTE(random_state=42)
+    smote = SMOTE(sampling_strategy=0.9, random_state=42) 
     X_train_resampled, y_train_resampled = smote.fit_resample(X_train, y_train)
 
     xgb_model = xgb.XGBClassifier(
@@ -130,6 +131,7 @@ def build_xgb_model(X_train, y_train):
     xgb_model.fit(X_train_resampled, y_train_resampled)
     
     return xgb_model
+
 
 
 
