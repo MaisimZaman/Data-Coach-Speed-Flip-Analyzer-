@@ -11,14 +11,14 @@ xgb_model = joblib.load("ML_Models/xgb_speed_flip_model.pkl")
 
 curent_model = rf_model
 flip_df = pd.read_csv("Testing_mapping/Speedflip_excel1.csv")
-flip_df2 = pd.read_csv("Speedflip_mapping/Speedflip_excel2.csv")
+flip_df2 = pd.read_csv("Speedflip_mapping/Speedflip_excel4.csv")
 
 
 flip_df = pd.read_csv("Testing_mapping/Speedflip_excel1.csv")
 
 
 speed_flip_timestamps = flip_df.loc[flip_df["Flip Type"] == "Speed Flip", "TimeStamp"].tolist()
-speed_flip_timestamps2 = flip_df2.loc[flip_df2["PLAYER"] ==  "Metsanauris", "TIMESTAMP"].tolist()
+
 
 
     
@@ -140,15 +140,20 @@ df = pd.read_parquet(file_path4)
 pd.set_option('display.max_columns', None)
 
 players = df['PlayerName'].unique().tolist()
-player = players[0]
+player = players[2]
 
+speed_flip_timestamps = flip_df2.loc[flip_df2["PLAYER"] == player, "TIMESTAMP"].tolist()
+print(len(speed_flip_timestamps))
+print(player)
 
+'''
 print(" ")
 print(f"Speed Flip timestamps predicted by ML model:")
 print(speed_flip_times(df, player))
 speed_flip_count = len(speed_flip_times(df, player))
 print(f"{speed_flip_count} predicted speed flips")
 print(player)
+'''
 
 
 

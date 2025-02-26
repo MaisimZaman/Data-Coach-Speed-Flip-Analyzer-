@@ -17,36 +17,60 @@ import matplotlib.pyplot as plt
 
 dir_path = Path('Training_data')
 
-def build_balance_df(training_df, balance_ratio=0.5):
-    # Step 1: Split dataset into Class 0 and Class 1
+def process_training_data(file_path, use_smote=False):
+    """
+    Reads a CSV file, balances the dataset using either undersampling (default) or SMOTE.
+
+    Parameters:
+    - file_path (str): Path to the dataset file.
+    - use_smote (bool): If True, uses SMOTE instead of undersampling.
+
+    Returns:
+    - pd.DataFrame: Balanced dataset
+    """
+    # Load dataset
+    training_df = pd.read_csv(file_path)
+
+    # Separate the two classes
     df_class_0 = training_df[training_df['SpeedFlip'] == 0]
-    df_class_1 = training_df[training_df['SpeedFlip'] == 1]  # Class 1 is always the minority class
+    df_class_1 = training_df[training_df['SpeedFlip'] == 1]
 
-    # Step 2: Get current number of Class 1 samples
-    n_class_1 = len(df_class_1)
 
-    # Step 3: Calculate required number of Class 0 samples for the given balance ratio
-    n_class_0 = int(n_class_1 * ((1 - balance_ratio) / balance_ratio))
+    if use_smote:
+        # ✅ Dynamic SMOTE - Ensure Class 1 is never removed
+        X = training_df.drop(columns=['SpeedFlip'])  # Features
+        y = training_df['SpeedFlip']  # Target
 
-    # Step 4: Downsample Class 0 to the required size
-    df_class_0_resampled = df_class_0.sample(n=n_class_0, random_state=42, replace=False)
+        # Calculate safe SMOTE ratio (ensure Class 1 never exceeds Class 0)
+        max_safe_ratio = len(df_class_0) / len(df_class_1) - 1  # Ensures no Class 1 removal
+        sampling_strategy = min(0.5,  max_safe_ratio)  # Cap it at 50% of Class 0
 
-    # Step 5: Combine Class 0 and Class 1, then shuffle
-    balanced_df = pd.concat([df_class_0_resampled, df_class_1]).sample(frac=1, random_state=42).reset_index(drop=True)
+        smote = SMOTE(sampling_strategy=sampling_strategy, random_state=42)
+        X_resampled, y_resampled = smote.fit_resample(X, y)
 
-    return balanced_df
+        # Convert back to DataFrame
+        df_balanced = pd.concat([pd.DataFrame(X_resampled), pd.DataFrame(y_resampled, columns=['SpeedFlip'])], axis=1)
+
+    else:
+        # ✅ Undersampling Only (Avoids errors when Class 1 is too large)
+        if len(df_class_0) > len(df_class_1):
+            df_class_0_under = df_class_0.sample(n=len(df_class_1), random_state=42)
+            df_balanced = pd.concat([df_class_0_under, df_class_1], axis=0)
+        else:
+            df_balanced = training_df.copy()  # If already balanced, leave it unchanged
+
+    # Shuffle the dataset
+    df_balanced = df_balanced.sample(frac=1, random_state=42).reset_index(drop=True)
+
+    return df_balanced
 
 def build_training_df(dir_path):
     training_dfs = []
     
     for file_path in dir_path.rglob('*'):  # '*' matches all files and directories
         if file_path.is_file():  # This check ensures only files are considered
-            training_df = pd.read_csv(file_path)
-            df_class_0 = training_df[training_df['SpeedFlip'] == 0]
-            df_class_1 = training_df[training_df['SpeedFlip'] == 1]
-            df_class_0_under = df_class_0.sample(n=len(df_class_1), random_state=42)  # ensure reproducibility with a random state
-            df_balanced = pd.concat([df_class_0_under, df_class_1], axis=0)
-            training_dfs.append(df_balanced)
+            training_df = process_training_data(file_path, use_smote=True)
+            training_dfs.append(training_df)
     
     final_df = pd.concat(training_dfs, ignore_index=True)
     
@@ -66,11 +90,8 @@ features = [
 
 
 
-
-
 X = training_df[features]  # Feature set
 y = training_df["SpeedFlip"]  # Target variable
-
 
 
 #training the model
@@ -115,7 +136,7 @@ def build_xgb_model(X_train, y_train):
     scale_pos_weight = (class_counts[0] / class_counts[1]) * 1.1
 
     # Applying SMOTE to balance the dataset
-    smote = SMOTE(random_state=42)
+    smote = SMOTE(random_state=42, k_neighbors=11)
     X_train_resampled, y_train_resampled = smote.fit_resample(X_train, y_train)
 
     xgb_model = xgb.XGBClassifier(
@@ -129,8 +150,8 @@ def build_xgb_model(X_train, y_train):
     # Fit the model on the balanced training data
     xgb_model.fit(X_train_resampled, y_train_resampled)
     
+    
     return xgb_model
-
 
 
 
