@@ -9,7 +9,7 @@ import joblib
 from pathlib import Path
 from imblearn.over_sampling import SMOTE
 from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import precision_score, precision_recall_curve, f1_score
+from sklearn.metrics import precision_score, precision_recall_curve, f1_score, make_scorer
 from imblearn.over_sampling import RandomOverSampler
 from sklearn.utils import resample
 import matplotlib.pyplot as plt
@@ -18,16 +18,6 @@ import matplotlib.pyplot as plt
 dir_path = Path('Training_data')
 
 def process_training_data(file_path, use_smote=False):
-    """
-    Reads a CSV file, balances the dataset using either undersampling (default) or SMOTE.
-
-    Parameters:
-    - file_path (str): Path to the dataset file.
-    - use_smote (bool): If True, uses SMOTE instead of undersampling.
-
-    Returns:
-    - pd.DataFrame: Balanced dataset
-    """
     # Load dataset
     training_df = pd.read_csv(file_path)
 
@@ -43,7 +33,7 @@ def process_training_data(file_path, use_smote=False):
 
         # Calculate safe SMOTE ratio (ensure Class 1 never exceeds Class 0)
         max_safe_ratio = len(df_class_0) / len(df_class_1) - 1  # Ensures no Class 1 removal
-        sampling_strategy = min(0.5,  max_safe_ratio)  # Cap it at 50% of Class 0
+        sampling_strategy = min(0.3,  max_safe_ratio)  # Cap it at 30% of Class 0
 
         smote = SMOTE(sampling_strategy=sampling_strategy, random_state=42)
         X_resampled, y_resampled = smote.fit_resample(X, y)
@@ -97,9 +87,7 @@ y = training_df["SpeedFlip"]  # Target variable
 #training the model
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
 
-scaler = StandardScaler()
-X_train_scaled = scaler.fit_transform(X_train)  # Assuming X_train is your training data
-X_test_scaled = scaler.transform(X_test)
+
 
 def build_random_forest_model(X_train, y_train, class_weight=None):
 
@@ -130,25 +118,19 @@ def build_random_forest_model(X_train, y_train, class_weight=None):
 
 
 def build_xgb_model(X_train, y_train):
-    # Calculate scale_pos_weight
-    class_counts = y_train.value_counts()
-    # Increase the scale_pos_weight significantly to put a very high emphasis on Class 1
-    scale_pos_weight = (class_counts[0] / class_counts[1]) * 1.1
-
-    # Applying SMOTE to balance the dataset
-    smote = SMOTE(random_state=42, k_neighbors=11)
-    X_train_resampled, y_train_resampled = smote.fit_resample(X_train, y_train)
 
     xgb_model = xgb.XGBClassifier(
         n_estimators=500,        # More boosting rounds
         max_depth=8,             # More complexity allowed
         learning_rate=0.05,      # Lower learning rate for better generalization
-        colsample_bytree=0.8,    # Reduces overfitting
-        scale_pos_weight=scale_pos_weight,  # Significantly adjusted to favor the minority class
-        random_state=42
+        colsample_bytree=1.0,    # Reduces overfitting
+        scale_pos_weight=3,  # Significantly adjusted to favor the minority class
+        random_state=42,
+        subsample=0.8
     )
     # Fit the model on the balanced training data
-    xgb_model.fit(X_train_resampled, y_train_resampled)
+    #xgb_model.fit(X_train_resampled, y_train_resampled)
+    xgb_model.fit(X_train, y_train)
     
     
     return xgb_model

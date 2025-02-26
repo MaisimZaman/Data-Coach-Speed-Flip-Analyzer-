@@ -41,6 +41,7 @@ def predict_with_custom_threshold(model, input_data, threshold=0.83):
 def is_speed_flip(data, model):
     seconds_remaining = data['SecondsRemaining']
     car_steer = data['CarSteer']
+    car_throttle = data['CarThrottle']
     car_rotation_x = data['CarRotationX']
     car_rotation_y = data['CarRotationY']
     car_rotation_z = data['CarRotationZ']
@@ -59,6 +60,7 @@ def is_speed_flip(data, model):
     input_data = {
     "SecondsRemaining": seconds_remaining,
     "CarSteer": car_steer,
+    "CarThrottle": car_throttle,
     "CarRotationX": car_rotation_x,
     "CarRotationY": car_rotation_y,
     "CarRotationZ": car_rotation_z,
@@ -74,7 +76,7 @@ def is_speed_flip(data, model):
     "CarJumpActive": car_jump_active,
     }
     
-    return predict_with_custom_threshold(model, input_data, threshold=0.8)
+    return predict_with_custom_threshold(model, input_data, threshold=0.5364)
 
 
         
@@ -136,24 +138,22 @@ file_path3 = "Testing_parquets/parquet1.parquet"
 
 file_path4 = "replay_parquets/parquet4.parquet"
 
-df = pd.read_parquet(file_path4)
+df = pd.read_parquet(file_path)
 pd.set_option('display.max_columns', None)
 
 players = df['PlayerName'].unique().tolist()
-player = players[2]
+player = players[0]
 
-speed_flip_timestamps = flip_df2.loc[flip_df2["PLAYER"] == player, "TIMESTAMP"].tolist()
-print(len(speed_flip_timestamps))
-print(player)
 
-'''
+
+
 print(" ")
 print(f"Speed Flip timestamps predicted by ML model:")
 print(speed_flip_times(df, player))
 speed_flip_count = len(speed_flip_times(df, player))
 print(f"{speed_flip_count} predicted speed flips")
 print(player)
-'''
+
 
 
 
