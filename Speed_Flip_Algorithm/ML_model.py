@@ -15,6 +15,8 @@ from sklearn.utils import resample
 import matplotlib.pyplot as plt
 
 
+#ML model that is built with SMOTE
+
 dir_path = Path('Training_data')
 
 def process_training_data(file_path, use_smote=False):
@@ -166,7 +168,3 @@ print(report_xgb)
 
 
 #Testing on unbalanced data
-
-
-
-
